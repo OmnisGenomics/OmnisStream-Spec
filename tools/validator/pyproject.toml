@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "omnisstream-validator"
+version = "0.1.0"
+description = "Reference validator for omnisstream-spec manifests"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+dependencies = [
+  "blake3>=1.0.0",
+  "google-crc32c>=1.6.0",
+  "protobuf>=5.0.0",
+]
+
+[project.scripts]
+omnisstream-validate = "omnisstream_validate.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

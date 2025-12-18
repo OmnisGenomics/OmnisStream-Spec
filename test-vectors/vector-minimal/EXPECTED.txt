@@ -1,0 +1,7 @@
+# OmnisStream test vector: vector-minimal
+# Digests are over stored payload bytes.
+# CRC32C is hex of big-endian 4-byte digest. BLAKE3-256 is hex of 32-byte digest.
+
+parts/part-0001.bin	size=5	crc32c_be_hex=81d90e1b	blake3_256_hex=fbc2b0516ee8744d293b980779178a3508850fdcfe965985782c39601b65794f	crc32c_b64=gdkOGw==	blake3_256_b64=+8KwUW7odE0pO5gHeReKNQiFD9z+llmFeCw5YBtleU8=
+parts/part-0002.bin	size=1	crc32c_be_hex=399f7b69	blake3_256_hex=295192ea1ec8566d563b1a7587e5f0198580cdbd043842f5090a4c197c20c67a	crc32c_b64=OZ97aQ==	blake3_256_b64=KVGS6h7IVm1WOxp1h+XwGYWAzb0EOEL1CQpMGXwgxno=
+parts/part-0003.bin	size=7	crc32c_be_hex=09945f98	blake3_256_hex=699488aae7aa922fe15d425e03fb9393d9c03a3ea039dfe79ac1d2e581a5d362	crc32c_b64=CZRfmA==	blake3_256_b64=aZSIqueqki/hXUJeA/uTk9nAOj6gOd/nmsHS5YGl02I=

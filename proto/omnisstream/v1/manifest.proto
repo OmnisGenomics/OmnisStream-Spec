@@ -1,0 +1,122 @@
+syntax = "proto3";
+
+package omnisstream.v1;
+
+// v0.1 manifest schema.
+//
+// Field numbers are stable. Do NOT renumber or reuse numbers.
+
+enum HashAlgorithm {
+  HASH_ALGORITHM_UNSPECIFIED = 0;
+  HASH_ALGORITHM_CRC32C = 1;
+  HASH_ALGORITHM_BLAKE3_256 = 2;
+}
+
+enum CompressionAlgorithm {
+  COMPRESSION_ALGORITHM_UNSPECIFIED = 0;
+  COMPRESSION_ALGORITHM_NONE = 1;
+  COMPRESSION_ALGORITHM_ZSTD_SEEKABLE = 2;
+  COMPRESSION_ALGORITHM_BGZF = 3;
+}
+
+enum UploadSessionState {
+  UPLOAD_SESSION_STATE_UNSPECIFIED = 0;
+  UPLOAD_SESSION_STATE_PENDING = 1;
+  UPLOAD_SESSION_STATE_COMPLETE = 2;
+  UPLOAD_SESSION_STATE_ABORTED = 3;
+}
+
+message HashDigest {
+  // 1: Hash algorithm identifier.
+  HashAlgorithm alg = 1;
+
+  // 2: Raw digest bytes.
+  //
+  // - CRC32C: 4 bytes (big-endian)
+  // - BLAKE3-256: 32 bytes
+  bytes digest = 2;
+}
+
+message PartMeta {
+  // 1: Stable identifier used for idempotency and replay.
+  uint32 part_number = 1;
+
+  // 2: Logical offset within the object (bytes).
+  uint64 offset = 2;
+
+  // 3: Logical length of this part (bytes).
+  uint64 length = 3;
+
+  // 4: Size of the stored payload bytes (bytes).
+  uint64 stored_length = 4;
+
+  // 5: Compression/encoding of the stored payload bytes.
+  CompressionAlgorithm compression = 5;
+
+  // 6: Integrity digests of the stored payload bytes.
+  repeated HashDigest hashes = 6;
+
+  // 7: Optional relative path to the stored payload bytes (used by test vectors).
+  string relative_path = 7;
+
+  // 8: Human-readable metadata.
+  map<string, string> tags = 8;
+
+  // 9: Uninterpreted extension payloads.
+  map<string, bytes> extensions = 9;
+}
+
+message UploadSession {
+  // 1: Opaque identifier for resuming an upload.
+  string upload_id = 1;
+
+  // 2: Durable session state.
+  UploadSessionState state = 2;
+
+  // 3: Creation time (Unix epoch milliseconds).
+  int64 created_unix_ms = 3;
+
+  // 4: Last update time (Unix epoch milliseconds).
+  int64 updated_unix_ms = 4;
+
+  // 5: Human-readable metadata.
+  map<string, string> tags = 5;
+
+  // 6: Uninterpreted extension payloads.
+  map<string, bytes> extensions = 6;
+}
+
+message CommitMeta {
+  // 1: Opaque commit identifier.
+  string commit_id = 1;
+
+  // 2: Commit time (Unix epoch milliseconds).
+  int64 committed_unix_ms = 2;
+}
+
+message ObjectManifest {
+  // 1: SemVer `MAJOR.MINOR.PATCH` declaring the manifest spec version (e.g. "0.1.0").
+  string manifest_version = 1;
+
+  // 2: Object identifier.
+  string object_id = 2;
+
+  // 3: Total logical object length in bytes.
+  uint64 object_length = 3;
+
+  // 4: Ordered part metadata.
+  repeated PartMeta parts = 4;
+
+  // 5: Optional upload session metadata.
+  UploadSession upload_session = 5;
+
+  // 6: Optional commit metadata.
+  CommitMeta commit = 6;
+
+  // 7: Human-readable metadata.
+  map<string, string> tags = 7;
+
+  // 8: Uninterpreted extension payloads.
+  map<string, bytes> extensions = 8;
+}
+
