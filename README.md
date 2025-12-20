@@ -26,3 +26,7 @@ omnisstream-validate test-vectors/vector-compressed/manifest.pb --base-dir test-
 
 - Current spec series: `0.1.x`
 - Current schema package: `omnisstream.v1`
+
+## License
+
+This repository is licensed under the Apache License, Version 2.0. See LICENSE.
