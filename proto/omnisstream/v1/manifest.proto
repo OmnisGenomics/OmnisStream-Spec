@@ -56,7 +56,10 @@ message PartMeta {
   // 6: Integrity digests of the stored payload bytes.
   repeated HashDigest hashes = 6;
 
-  // 7: Optional relative path to the stored payload bytes (used by test vectors).
+  // 7: Optional relative path to the stored payload bytes.
+  //
+  // - When present, payload bytes are located at `base_dir/relative_path`.
+  // - When empty, payload bytes are resolved out-of-band (e.g., via a digest-addressed PartStore).
   string relative_path = 7;
 
   // 8: Human-readable metadata.
@@ -119,4 +122,3 @@ message ObjectManifest {
   // 8: Uninterpreted extension payloads.
   map<string, bytes> extensions = 8;
 }
-

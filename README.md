@@ -8,6 +8,7 @@ This repository is the normative specification (“the constitution”) for Omni
 
 - `MANIFEST_SPEC.md` — normative manifest specification (RFC 2119 keywords).
 - `CANONICAL_JSON.md` — canonical JSON representation and ordering rules.
+- `REPOSITORY_SPEC.md` — filesystem repository profile (PartStore + objects layout).
 - `proto/` — protobuf schema (`proto/omnisstream/v1/manifest.proto`).
 - `test-vectors/` — deterministic fixtures (bytes + manifests + expected digests).
 - `tools/validator/` — tiny reference validator (`omnisstream-validate`).

@@ -88,6 +88,8 @@ Unknown keys are prohibited in canonical JSON so that canonicalization is fully 
 - `stored_length` (integer)
 - `tags` (optional object of strings)
 
+Note: For the filesystem repository profile, `relative_path` is typically omitted and part payload bytes are resolved via a digest-addressed PartStore (see `REPOSITORY_SPEC.md`).
+
 ### 6.2 `hashes`
 
 `hashes` MUST be an array of objects with keys:
@@ -122,4 +124,3 @@ The following is an example canonical JSON manifest (line breaks added here for 
   ]
 }
 ```
-

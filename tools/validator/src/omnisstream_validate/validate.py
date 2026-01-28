@@ -129,20 +129,46 @@ def validate_manifest(manifest: ObjectManifest, base_dir: Path) -> list[Validati
         if "blake3-256" in digest_map and len(digest_map["blake3-256"]) != 32:
             issues.append(ValidationIssue(f"parts[{idx}] blake3-256 digest must be 32 bytes"))
 
-        if part.relative_path is None:
-            issues.append(ValidationIssue(f"parts[{idx}] relative_path is required for digest verification"))
-            continue
-        if not _is_safe_relative_path(part.relative_path):
-            issues.append(ValidationIssue(f"parts[{idx}] relative_path is not a safe relative path: {part.relative_path}"))
-            continue
+        payload_path: Path | None = None
+        if part.relative_path is not None:
+            if not _is_safe_relative_path(part.relative_path):
+                issues.append(
+                    ValidationIssue(
+                        f"parts[{idx}] relative_path is not a safe relative path: {part.relative_path}"
+                    )
+                )
+                continue
 
-        try:
-            payload_path = _resolve_under_base(base_dir, part.relative_path)
-        except Exception as exc:
-            issues.append(ValidationIssue(f"parts[{idx}] invalid relative_path: {exc}"))
-            continue
+            try:
+                payload_path = _resolve_under_base(base_dir, part.relative_path)
+            except Exception as exc:
+                issues.append(ValidationIssue(f"parts[{idx}] invalid relative_path: {exc}"))
+                continue
+        else:
+            # Digest-addressed PartStore resolution (filesystem repository profile).
+            b3 = digest_map.get("blake3-256")
+            if b3 is None or len(b3) != 32:
+                continue
+
+            hex_digest = b3.hex()
+            payload_path = (
+                base_dir
+                / "parts"
+                / hex_digest[0:2]
+                / hex_digest[2:4]
+                / hex_digest
+            )
         if not payload_path.exists():
-            issues.append(ValidationIssue(f"parts[{idx}] payload missing: {part.relative_path}"))
+            if part.relative_path is not None:
+                issues.append(
+                    ValidationIssue(f"parts[{idx}] payload missing: {part.relative_path}")
+                )
+            else:
+                issues.append(
+                    ValidationIssue(
+                        f"parts[{idx}] partstore payload missing: {payload_path.relative_to(base_dir)}"
+                    )
+                )
             continue
 
         payload = payload_path.read_bytes()

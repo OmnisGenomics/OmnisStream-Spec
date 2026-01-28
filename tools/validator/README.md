@@ -20,6 +20,13 @@ Validate a protobuf manifest against local part payload bytes:
 omnisstream-validate path/to/manifest.pb --base-dir path/to/vector-dir
 ```
 
+For digest-addressed repositories (where `relative_path` is empty/absent in the manifest), pass the
+repository root as `--base-dir`:
+
+```bash
+omnisstream-validate repo/objects/my-object/versions/<version>/manifest.pb --base-dir repo
+```
+
 The validator also accepts canonical JSON manifests (as produced in `test-vectors/*/manifest.json`):
 
 ```bash

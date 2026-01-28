@@ -76,7 +76,9 @@ Each `PartMeta` has these fields:
 - `stored_length` (uint64, REQUIRED): number of bytes in the stored payload.
 - `compression` (enum, REQUIRED): compression/encoding of the stored payload.
 - `hashes` (array of `HashDigest`, REQUIRED): integrity digests of the stored payload bytes.
-- `relative_path` (string, OPTIONAL): path to the stored payload bytes, relative to a base directory (used by test vectors and reference tooling).
+- `relative_path` (string, OPTIONAL): path to the stored payload bytes, relative to a base directory.
+  - If `relative_path` is present and non-empty, the stored payload bytes for this part are located at `base_dir/relative_path`.
+  - If `relative_path` is absent or empty, the stored payload bytes MUST be resolved out-of-band (e.g., via a content-addressed PartStore keyed by the part’s `blake3-256` hash; see `REPOSITORY_SPEC.md`).
 - `tags` (map<string,string>, OPTIONAL)
 - `extensions` (map<string,bytes>, OPTIONAL)
 
@@ -228,7 +230,7 @@ For every `PartMeta`:
 - `compression` MUST NOT be `unspecified`.
 - Producers SHOULD use one of the recognized values (§3.4).
 - Readers/validators MAY accept unknown (non-`unspecified`) compression identifiers.
-- `relative_path`, if present, MUST be a relative path (it MUST NOT be absolute and MUST NOT contain `..` path segments).
+- `relative_path`, if present and non-empty, MUST be a relative path (it MUST NOT be absolute and MUST NOT contain `..` path segments).
 
 ### 8.3 Part ordering and coverage invariants
 
