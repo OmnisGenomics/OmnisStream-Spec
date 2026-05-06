@@ -74,6 +74,13 @@ def _as_bytes_map_b64(value: object) -> dict[str, bytes]:
     return out
 
 
+
+
+def _require_nonnegative_int(value: object, field: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ValueError(f"{field} must be a non-negative integer")
+    return value
+
 def _from_protobuf(path: Path) -> ObjectManifest:
     if manifest_pb2 is None:
         raise RuntimeError("protobuf module import failed (did you install tools/validator?)")
@@ -139,10 +146,7 @@ def _from_json(path: Path) -> ObjectManifest:
         return v
 
     def req_int(key: str) -> int:
-        v = obj.get(key)
-        if not isinstance(v, int) or v < 0:
-            raise ValueError(f"{key} must be a non-negative integer")
-        return v
+        return _require_nonnegative_int(obj.get(key), key)
 
     parts_val = obj.get("parts")
     if not isinstance(parts_val, list):
@@ -171,10 +175,10 @@ def _from_json(path: Path) -> ObjectManifest:
 
         parts.append(
             PartMeta(
-                part_number=int(p.get("part_number") or 0),
-                offset=int(p.get("offset") or 0),
-                length=int(p.get("length") or 0),
-                stored_length=int(p.get("stored_length") or 0),
+                part_number=_require_nonnegative_int(p.get("part_number", 0), f"parts[{i}].part_number"),
+                offset=_require_nonnegative_int(p.get("offset", 0), f"parts[{i}].offset"),
+                length=_require_nonnegative_int(p.get("length", 0), f"parts[{i}].length"),
+                stored_length=_require_nonnegative_int(p.get("stored_length", 0), f"parts[{i}].stored_length"),
                 compression=str(p.get("compression") or "unspecified"),
                 hashes=tuple(hashes),
                 relative_path=rel_out,
@@ -189,8 +193,8 @@ def _from_json(path: Path) -> ObjectManifest:
         upload_session = UploadSession(
             upload_id=sess_obj["upload_id"],
             state=str(sess_obj.get("state") or "unspecified"),
-            created_unix_ms=int(sess_obj.get("created_unix_ms") or 0),
-            updated_unix_ms=int(sess_obj.get("updated_unix_ms") or 0),
+            created_unix_ms=_require_nonnegative_int(sess_obj.get("created_unix_ms", 0), "upload_session.created_unix_ms"),
+            updated_unix_ms=_require_nonnegative_int(sess_obj.get("updated_unix_ms", 0), "upload_session.updated_unix_ms"),
             tags=_as_str_map(sess_obj.get("tags")),
             extensions=_as_bytes_map_b64(sess_obj.get("extensions")),
         )
@@ -200,7 +204,7 @@ def _from_json(path: Path) -> ObjectManifest:
     if isinstance(commit_obj, dict) and isinstance(commit_obj.get("commit_id"), str) and commit_obj["commit_id"]:
         commit = CommitMeta(
             commit_id=commit_obj["commit_id"],
-            committed_unix_ms=int(commit_obj.get("committed_unix_ms") or 0),
+            committed_unix_ms=_require_nonnegative_int(commit_obj.get("committed_unix_ms", 0), "commit.committed_unix_ms"),
         )
 
     return ObjectManifest(
