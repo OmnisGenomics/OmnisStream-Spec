@@ -28,6 +28,24 @@ class TestVectors(unittest.TestCase):
         issues = validate_manifest(manifest, base_dir=vector_dir)
         self.assertEqual(issues, [])
 
+    def test_rejects_manifest_version_outside_supported_schema(self) -> None:
+        vector_dir = self.repo_root / "test-vectors/vector-minimal"
+        manifest = load_manifest(vector_dir / "manifest.pb", fmt="protobuf")
+        for version in ("0.2.0", "1.0.0", "9.9.9"):
+            with self.subTest(version=version):
+                candidate = manifest.__class__(
+                    manifest_version=version,
+                    object_id=manifest.object_id,
+                    object_length=manifest.object_length,
+                    parts=manifest.parts,
+                    upload_session=manifest.upload_session,
+                    commit=manifest.commit,
+                    tags=manifest.tags,
+                    extensions=manifest.extensions,
+                )
+                issues = validate_manifest(candidate, base_dir=vector_dir)
+                self.assertTrue(any("supported schema 0.1.x" in issue.message for issue in issues))
+
     def test_corrupt_byte_fails(self) -> None:
         src_dir = self.repo_root / "test-vectors/vector-minimal"
 

@@ -55,7 +55,11 @@ def validate_manifest(manifest: ObjectManifest, base_dir: Path) -> list[Validati
         return issues
 
     if not _SEMVER_RE.match(manifest.manifest_version or ""):
-        issues.append(ValidationIssue("manifest_version must be SemVer MAJOR.MINOR.PATCH"))
+        issues.append(ValidationIssue("manifest_version must be SemVer MAJOR.MINOR.PATCH with supported schema 0.1.x"))
+    else:
+        major, minor, _patch = (int(part) for part in manifest.manifest_version.split(".", 2))
+        if major != 0 or minor != 1:
+            issues.append(ValidationIssue("manifest_version must be SemVer MAJOR.MINOR.PATCH with supported schema 0.1.x"))
 
     if not manifest.object_id:
         issues.append(ValidationIssue("object_id must be non-empty"))
