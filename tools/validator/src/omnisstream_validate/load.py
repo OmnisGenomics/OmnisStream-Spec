@@ -6,6 +6,9 @@ from pathlib import Path
 
 from omnisstream_validate.model import CommitMeta, HashDigest, ObjectManifest, PartMeta, UploadSession
 
+UINT64_MAX = 2**64 - 1
+UINT32_MAX = 2**32 - 1
+
 try:
     from omnisstream.v1 import manifest_pb2  # type: ignore
 except Exception:  # pragma: no cover
@@ -74,12 +77,25 @@ def _as_bytes_map_b64(value: object) -> dict[str, bytes]:
     return out
 
 
-
-
 def _require_nonnegative_int(value: object, field: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value < 0:
         raise ValueError(f"{field} must be a non-negative integer")
     return value
+
+
+def _require_uint64(value: object, field: str) -> int:
+    value = _require_nonnegative_int(value, field)
+    if value > UINT64_MAX:
+        raise ValueError(f"{field} must fit in an unsigned 64-bit integer")
+    return value
+
+
+def _require_uint32(value: object, field: str) -> int:
+    value = _require_nonnegative_int(value, field)
+    if value > UINT32_MAX:
+        raise ValueError(f"{field} must fit in an unsigned 32-bit integer")
+    return value
+
 
 def _from_protobuf(path: Path) -> ObjectManifest:
     if manifest_pb2 is None:
@@ -145,8 +161,8 @@ def _from_json(path: Path) -> ObjectManifest:
             raise ValueError(f"{key} must be a non-empty string")
         return v
 
-    def req_int(key: str) -> int:
-        return _require_nonnegative_int(obj.get(key), key)
+    def req_uint64(key: str) -> int:
+        return _require_uint64(obj.get(key), key)
 
     parts_val = obj.get("parts")
     if not isinstance(parts_val, list):
@@ -175,10 +191,10 @@ def _from_json(path: Path) -> ObjectManifest:
 
         parts.append(
             PartMeta(
-                part_number=_require_nonnegative_int(p.get("part_number", 0), f"parts[{i}].part_number"),
-                offset=_require_nonnegative_int(p.get("offset", 0), f"parts[{i}].offset"),
-                length=_require_nonnegative_int(p.get("length", 0), f"parts[{i}].length"),
-                stored_length=_require_nonnegative_int(p.get("stored_length", 0), f"parts[{i}].stored_length"),
+                part_number=_require_uint32(p.get("part_number", 0), f"parts[{i}].part_number"),
+                offset=_require_uint64(p.get("offset", 0), f"parts[{i}].offset"),
+                length=_require_uint64(p.get("length", 0), f"parts[{i}].length"),
+                stored_length=_require_uint64(p.get("stored_length", 0), f"parts[{i}].stored_length"),
                 compression=str(p.get("compression") or "unspecified"),
                 hashes=tuple(hashes),
                 relative_path=rel_out,
@@ -210,7 +226,7 @@ def _from_json(path: Path) -> ObjectManifest:
     return ObjectManifest(
         manifest_version=req_str("manifest_version"),
         object_id=req_str("object_id"),
-        object_length=req_int("object_length"),
+        object_length=req_uint64("object_length"),
         parts=tuple(parts),
         upload_session=upload_session,
         commit=commit,
@@ -229,4 +245,3 @@ def load_manifest(path: Path, fmt: str = "auto") -> ObjectManifest:
     if resolved == "json":
         return _from_json(path)
     raise ValueError(f"unknown format: {fmt}")
-
